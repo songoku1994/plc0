@@ -350,7 +350,7 @@ std::optional<CompilationError> Analyser::analyseItem() {
       return {};
     }
     // <因子>
-    auto err = analyseFactor();
+    err = analyseFactor();
     if(err.has_value()) return err;
     // 根据结果生成指令
     if (type == TokenType::MULTIPLICATION_SIGN)
@@ -361,8 +361,6 @@ std::optional<CompilationError> Analyser::analyseItem() {
   return {};
 }
 
-// <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
-// 需要补全 done
 std::optional<CompilationError> Analyser::analyseFactor() {
   // [<符号>]
   auto next = nextToken();
@@ -387,7 +385,7 @@ std::optional<CompilationError> Analyser::analyseFactor() {
     // 这里和 <语句序列> 类似，需要根据预读结果调用不同的子程序
     // 但是要注意 default 返回的是一个编译错误
     case TokenType::IDENTIFIER :{
-      if(isDeclared(next.value().GetValueString())) 
+      if(!isDeclared(next.value().GetValueString())) 
         return {CompilationError(_current_pos, ErrorCode::ErrNotDeclared)};
       if (!isInitializedVariable(next.value().GetValueString()) && !isConstant(next.value().GetValueString())) 
         return {CompilationError(_current_pos, ErrorCode::ErrNotInitialized)};
@@ -406,7 +404,7 @@ std::optional<CompilationError> Analyser::analyseFactor() {
     }
     case TokenType::LEFT_BRACKET:{
       auto err = analyseExpression();
-      if(err.has_value()) return err;
+      if(err.has_value()) return {};
       next = nextToken();
       if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET)
             return std::make_optional<CompilationError>(_current_pos,
