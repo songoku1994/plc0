@@ -247,81 +247,42 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
 // <空语句> :: = ';'
 
 // 需要补全
-
 std::optional<CompilationError> Analyser::analyseStatementSequence() {
-
   while (true) {
-
     // 预读
-
     auto next = nextToken();
-
     if (!next.has_value()) return {};
-
     unreadToken();
-
     if (next.value().GetType() != TokenType::IDENTIFIER &&
-
         next.value().GetType() != TokenType::PRINT &&
-
         next.value().GetType() != TokenType::SEMICOLON) {
-
       return {};
-
     }
-
     std::optional<CompilationError> err;
-
     switch (next.value().GetType()) {
-
-      // 这里需要你针对不同的预读结果来调用不同的子程序
-
-      // 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
-
-      case TokenType::IDENTIFIER: {
-
-        auto err = analyseAssignmentStatement();
-
-        if (err.has_value()) return err;
-
-        break;
-
-      }
-
-      case TokenType::PRINT: {
-
-        auto err = analyseOutputStatement();
-
-        if (err.has_value()) return err;
-
-        break;
-
-      }
-
-      case TokenType::SEMICOLON: {
-
-        nextToken();
-
-        return {};
-
-        break;
-
-      }
-
-
-
+        // 这里需要你针对不同的预读结果来调用不同的子程序
+        // 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
+        case TokenType::IDENTIFIER:{
+          auto err = analyseAssignmentStatement();
+          if(!err.has_value()) return err;
+          break;
+        }
+        case TokenType::PRINT:{
+          auto err = analyseOutputStatement();
+          if(err.has_value()) return err;
+          break;     
+        }
+        case TokenType::SEMICOLON:{
+          nextToken();
+          return {};
+          break;
+        }
       default:
-
         break;
-
     }
-
   }
-
   return {};
-
 }
-
 
 
 // <常表达式> ::= [<符号>]<无符号整数>
@@ -346,56 +307,29 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
 
   // [<符号>]
 
-  auto next = nextToken();
-
+ auto next = nextToken();
   auto prefix = 1;
-
   if (!next.has_value())
-
     return std::make_optional<CompilationError>(
-
         _current_pos, ErrorCode::ErrIncompleteExpression);
-
-  if (next.value().GetType() == TokenType::PLUS_SIGN)
-
+  if(next.value().GetType() == TokenType::PLUS_SIGN)
     prefix = 1;
-
-  else if (next.value().GetType() == TokenType::MINUS_SIGN) {
-
+  else if(next.value().GetType() == TokenType::MINUS_SIGN)
     prefix = -1;
-
-  } else
-
-    unreadToken();
-
-
-
+  else unreadToken();
   next = nextToken();
-
   if (!next.has_value())
-
     return std::make_optional<CompilationError>(
-
         _current_pos, ErrorCode::ErrConstantNeedValue);
-
-  std::string str = next.value().GetValueString();
-
   // 无符号整数
-
   try{
-
-    out = std::stoi(str) * prefix;
-
+    out = std::stoi(next.value().GetValueString()) * prefix;
   }catch(std::out_of_range& e){
-
     return std::make_optional<CompilationError>(
-
         _current_pos, ErrorCode::ErrIntegerOverflow);
-
   }
-
+  
   return {};
-
 }
 
 
