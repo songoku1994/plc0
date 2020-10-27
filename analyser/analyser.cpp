@@ -103,54 +103,91 @@ std::optional<CompilationError> Analyser::analyseConstantDeclaration() {
 // <变量声明语句> ::= 'var'<标识符>['='<表达式>]';'
 // 需要补全 done?
 std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
+
   // 变量声明语句可能有一个或者多个
-  while(true){
+
+  while (true) {
+
     // 预读？
+
     auto next = nextToken();
-    if(!next.has_value()) return {};
+
     // 'var'
-    if(next.value().GetType() != TokenType::VAR){
+
+    if (!next.has_value()) return {};
+
+    if (next.value().GetType() != TokenType::VAR) {
+
       unreadToken();
+
       return {};
+
     }
+
     // <标识符>
+
     next = nextToken();
-    auto ident = /*标识符的 token*/ Token(TokenType::IDENTIFIER, next, 0, 0, 0, 0);
+
+    auto tmp = next;
+
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
+
       return std::make_optional<CompilationError>(_current_pos,
+
                                                   ErrorCode::ErrNeedIdentifier);
 
+    // 声明过了
+
+    if (isDeclared(next.value().GetValueString())) {
+
+      return std::make_optional<CompilationError>(_current_pos,
+
+                                           ErrorCode::ErrDuplicateDeclaration);
+
+    }
+
     // 变量可能没有初始化，仍然需要一次预读
+
     next = nextToken();
-    if(!next.has_value()) return {};
-    bool initialized = next.value().GetType()==TokenType::EQUAL_SIGN? true:false;
-    unreadToken();
+
     // '='
-    next = nextToken();
-    if (!next.has_value() || next.value().GetType() != TokenType::EQUAL_SIGN)
-      return std::make_optional<CompilationError>(
-          _current_pos, ErrorCode::ErrConstantNeedValue);
+
+    if (next.value().GetType() != TokenType::EQUAL_SIGN) {
+
+      _instructions.emplace_back(Operation::LIT, 0);
+
+      addUninitializedVariable(tmp.value());
+
+      unreadToken();
+
+    }
 
     // '<表达式>'
-    auto err = analyseExpression();
-    if (err.has_value()) return err;
+
+    else {
+
+      addVariable(tmp.value());
+
+      auto err = analyseExpression();
+
+      if (err.has_value()) return err;
+
+    }
 
     // ';'
+
     next = nextToken();
+
     if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
+
       return std::make_optional<CompilationError>(_current_pos,
-                                              ErrorCode::ErrNoSemicolon);
-    // 把变量加入符号表
-    if (initialized) {
-      addVariable(ident);
-      // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
-    } else {
-      addUninitializedVariable(ident);
-      // 加载一个任意的初始值
-      _instructions.emplace_back(Operation::LIT, 0);
-    }
+
+                                                  ErrorCode::ErrNoSemicolon);
+
   }
+
   return {};
+
 }
 
 // <语句序列> ::= {<语句>}
