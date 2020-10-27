@@ -222,7 +222,9 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
           break;     
         }
         case TokenType::SEMICOLON:{
+          //nextToken();
           return {};
+          break;
         }
       default:
         break;
