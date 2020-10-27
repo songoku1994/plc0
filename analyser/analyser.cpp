@@ -181,7 +181,7 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
         }
         case TokenType::PRINT:{
           auto err = analyseOutputStatement();
-          if(!err.has_value()) return err;
+          if(err.has_value()) return err;
           break;     
         }
         case TokenType::SEMICOLON:{
@@ -212,8 +212,7 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
     prefix = 1;
   else if(next.value().GetType() == TokenType::MINUS_SIGN)
     prefix = -1;
-  else
-  unreadToken();
+  else unreadToken();
   next = nextToken();
   if (!next.has_value())
     return std::make_optional<CompilationError>(
@@ -289,6 +288,12 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   //expression
   auto err = analyseExpression();
   if(err.has_value()) return err;
+  //';'
+  next = nextToken();
+  if(!next.has_value() || next.value().GetType() != TokenType::SEMICOLON){
+      return std::make_optional<CompilationError>(_current_pos,
+                                                  ErrorCode::ErrNoSemicolon);
+  }
   // 存储这个标识符
   auto index = getIndex(name);
   _instructions.emplace_back(Operation::STO, index);
@@ -411,7 +416,6 @@ std::optional<CompilationError> Analyser::analyseFactor() {
                                                 ErrorCode::ErrIncompleteExpression);
       break;
     }
-    // 备用代码：
     default:
       return std::make_optional<CompilationError>(
           _current_pos, ErrorCode::ErrIncompleteExpression);
