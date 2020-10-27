@@ -204,7 +204,7 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     }
     // <标识符>
     next = nextToken();
-    auto ident = /*标识符的 token*/ Token(TokenType::IDENTIFIER, next, 0, 0, 0, 0);
+    auto ident = Token(TokenType::IDENTIFIER, next, 0, 0, 0, 0);
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNeedIdentifier);
@@ -221,12 +221,12 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
       // '<表达式>'
       auto err = analyseExpression();
       if (err.has_value()) return err;
-      // ';'
-      next = nextToken();
-      if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
-        return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNoSemicolon);
     }
+    // ';'
+    next = nextToken();
+    if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
+      return std::make_optional<CompilationError>(_current_pos,
+                                              ErrorCode::ErrNoSemicolon);
     // 把变量加入符号表
     if (initialized) {
       addVariable(ident);
@@ -239,7 +239,6 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
   }
   return {};
 }
-
 
 
 // <语句序列> ::= {<语句>}
