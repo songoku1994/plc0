@@ -208,16 +208,20 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNeedIdentifier);
-    bool initialized = true;
     // 变量可能没有初始化，仍然需要一次预读
     next = nextToken();
     if(!next.has_value()) return {};
     // '='
     if (next.value().GetType() != TokenType::EQUAL_SIGN){
-      initialized = false;
+      addUninitializedVariable(ident);
+      // 加载一个任意的初始值
+      _instructions.emplace_back(Operation::LIT, 0);
+      // 把变量加入符号表
       unreadToken();
     }
     else{
+      addVariable(ident);
+      // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
       // '<表达式>'
       auto err = analyseExpression();
       if (err.has_value()) return err;
@@ -227,15 +231,6 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
       return std::make_optional<CompilationError>(_current_pos,
                                               ErrorCode::ErrNoSemicolon);
-    // 把变量加入符号表
-    if (initialized) {
-      addVariable(ident);
-      // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
-    } else {
-      addUninitializedVariable(ident);
-      // 加载一个任意的初始值
-      _instructions.emplace_back(Operation::LIT, 0);
-    }
   }
   return {};
 }
