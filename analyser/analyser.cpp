@@ -264,7 +264,7 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
         // 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
         case TokenType::IDENTIFIER:{
           auto err = analyseAssignmentStatement();
-          if(!err.has_value()) return err;
+          if(err.has_value()) return err;
           break;
         }
         case TokenType::PRINT:{
