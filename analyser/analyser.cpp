@@ -115,8 +115,8 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     }
     // <标识符>
     next = nextToken();
-   // auto ident = Token(TokenType::IDENTIFIER, next, 0, 0, 0, 0);
-    auto ident = next;
+    auto ident = Token(TokenType::IDENTIFIER, next, 0, 0, 0, 0);
+    //auto ident = next;
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNeedIdentifier);
@@ -125,14 +125,14 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if(!next.has_value()) return {};
     // '='
     if (next.value().GetType() != TokenType::EQUAL_SIGN){
-      addUninitializedVariable(ident.value());
+      addUninitializedVariable(ident);
       // 加载一个任意的初始值
       _instructions.emplace_back(Operation::LIT, 0);
       // 把变量加入符号表
       unreadToken();
     }
     else{
-      addVariable(ident.value());
+      addVariable(ident);
       // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
       // '<表达式>'
       auto err = analyseExpression();
