@@ -216,11 +216,11 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
   // 无符号整数
   try{
     out = std::stoi(next.value().GetValueString()) * prefix;
-  }catch(std::out_of_range& e){
+  }
+  catch(std::out_of_range& e){
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrIntegerOverflow);
   }
-  
   return {};
 }
 
@@ -354,6 +354,39 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
 
   return {};
 
+}
+
+
+// <输出语句> ::= 'print' '(' <表达式> ')' ';'
+std::optional<CompilationError> Analyser::analyseOutputStatement() {
+  // 如果之前 <语句序列> 的实现正确，这里第一个 next 一定是 TokenType::PRINT
+  auto next = nextToken();
+
+  // '('
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET)
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrInvalidPrint);
+
+  // <表达式>
+  auto err = analyseExpression();
+  if (err.has_value()) return err;
+
+  // ')'
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET)
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrInvalidPrint);
+
+  // ';'
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNoSemicolon);
+
+  // 生成相应的指令 WRT
+  _instructions.emplace_back(Operation::WRT, 0);
+  return {};
 }
 
 // <项> :: = <因子>{ <乘法型运算符><因子> }
