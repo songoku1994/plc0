@@ -283,8 +283,7 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   if(!next.has_value() || next.value().GetType() != TokenType::EQUAL_SIGN)
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrIncompleteExpression);
-  _vars[name] = _uninitialized_vars[name];
-  _uninitialized_vars.erase(name);
+  makeInitialized(name);
   //expression
   auto err = analyseExpression();
   if(err.has_value()) return err;
@@ -297,7 +296,6 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   // 存储这个标识符
   auto index = getIndex(name);
   _instructions.emplace_back(Operation::STO, index);
-  makeInitialized(name);
   return {};
 }
 
