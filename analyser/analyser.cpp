@@ -258,7 +258,6 @@ std::optional<CompilationError> Analyser::analyseExpression() {
 // <赋值语句> ::= <标识符>'='<表达式>';'
 // 需要补全 done?
 std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
-std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   // 这里除了语法分析以外还要留意
   // 标识符声明过吗？
   // 标识符是常量吗？
@@ -301,7 +300,6 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   makeInitialized(name);
   return {};
 }
-
 
 // <输出语句> ::= 'print' '(' <表达式> ')' ';'
 std::optional<CompilationError> Analyser::analyseOutputStatement() {
