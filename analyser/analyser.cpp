@@ -179,7 +179,7 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
           break;     
         }
         case TokenType::SEMICOLON:{
-          nextToken();
+          //nextToken();
           return {};
           break;
         }
@@ -296,6 +296,7 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
   makeInitialized(name);
   return {};
 }
+
 // <输出语句> ::= 'print' '(' <表达式> ')' ';'
 std::optional<CompilationError> Analyser::analyseOutputStatement() {
   // 如果之前 <语句序列> 的实现正确，这里第一个 next 一定是 TokenType::PRINT
@@ -360,6 +361,8 @@ std::optional<CompilationError> Analyser::analyseItem() {
   return {};
 }
 
+// <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
+// 需要补全 done
 std::optional<CompilationError> Analyser::analyseFactor() {
   // [<符号>]
   auto next = nextToken();
